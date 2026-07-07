@@ -1,0 +1,236 @@
+/* ============================================
+   STUDY INVADERS: MISSION RECALL
+   Shared stylesheet — used by every screen
+   ============================================ */
+
+:root{
+  --void:#0a0b1e;
+  --panel:#1b1836;
+  --panel-edge:#332a5e;
+  --ink:#e9e6f7;
+  --ink-dim:#9c93c2;
+  --cyan:#4ce0d2;
+  --red:#ff5470;
+  --amber:#ffd166;
+}
+
+*{ box-sizing:border-box; }
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--void);
+  color:var(--ink);
+  font-family:'VT323', monospace;
+}
+
+body{
+  min-height:100vh;
+}
+
+/* ---------- Background layers (starfield + CRT) ---------- */
+#starfield{
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
+
+#crt{
+  position:fixed;
+  inset:0;
+  z-index:5;
+  pointer-events:none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.15) 0px,
+      rgba(0,0,0,0.15) 1px,
+      transparent 2px,
+      transparent 3px
+    ),
+    radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+  mix-blend-mode:multiply;
+}
+
+.stage{
+  position:relative;
+  z-index:10;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.cabinet{
+  width:100%;
+  max-width:560px;
+  background:linear-gradient(180deg, var(--panel), #14112a);
+  border:3px solid var(--panel-edge);
+  border-radius:10px;
+  box-shadow:
+    0 0 0 6px rgba(76,224,210,0.06),
+    0 30px 60px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  padding:32px 28px 28px;
+  text-align:center;
+}
+
+.cabinet.wide{
+  max-width:680px;
+  text-align:left;
+}
+
+/* ---------- Typography ---------- */
+h1{
+  font-family:'Press Start 2P', monospace;
+  font-size:clamp(18px, 5vw, 28px);
+  line-height:1.4;
+  margin:0;
+  color:var(--cyan);
+  text-shadow:
+    0 0 6px rgba(76,224,210,0.7),
+    0 0 18px rgba(76,224,210,0.35);
+  letter-spacing:1px;
+}
+
+.missionTag{
+  font-family:'Press Start 2P', monospace;
+  font-size:11px;
+  color:var(--amber);
+  letter-spacing:3px;
+  margin:14px 0 0;
+  text-shadow:0 0 8px rgba(255,209,102,0.5);
+}
+
+.tagline{
+  font-size:19px;
+  color:var(--ink-dim);
+  margin:10px 0 28px;
+  letter-spacing:0.5px;
+}
+
+/* ---------- Titled sprite row ---------- */
+.titleRow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin-bottom:6px;
+}
+
+/* ---------- Form elements ---------- */
+fieldset{
+  border:none;
+  margin:0 0 22px;
+  padding:0;
+  text-align:left;
+}
+
+label{
+  display:block;
+  font-size:16px;
+  letter-spacing:1px;
+  color:var(--ink-dim);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+input[type="text"],
+input[type="password"]{
+  width:100%;
+  background:var(--void);
+  border:2px solid var(--panel-edge);
+  border-radius:6px;
+  color:var(--ink);
+  font-family:'VT323', monospace;
+  font-size:20px;
+  padding:10px 12px;
+  outline:none;
+  transition:border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+.uploadZone:focus-within{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(76,224,210,0.25);
+}
+
+.uploadZone{
+  border:2px dashed var(--panel-edge);
+  border-radius:6px;
+  padding:18px 14px;
+  cursor:pointer;
+  transition:border-color 0.15s, background 0.15s;
+  position:relative;
+}
+
+.uploadZone:hover{
+  border-color:var(--cyan);
+  background:rgba(76,224,210,0.05);
+}
+
+.uploadZone input[type="file"]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+}
+
+.uploadZone .zoneLabel{ font-size:18px; color:var(--ink); }
+.uploadZone .zoneHint{ font-size:15px; color:var(--ink-dim); margin-top:4px; }
+.uploadZone.hasFile{ border-color:var(--cyan); border-style:solid; }
+.uploadZone.hasFile .zoneLabel{ color:var(--cyan); }
+
+/* ---------- Buttons ---------- */
+.btnPrimary{
+  width:100%;
+  font-family:'Press Start 2P', monospace;
+  font-size:16px;
+  letter-spacing:1px;
+  padding:16px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  background:var(--ink-dim);
+  color:var(--void);
+  opacity:0.45;
+  pointer-events:none;
+  transition:opacity 0.2s, transform 0.1s, background 0.2s, box-shadow 0.2s;
+}
+
+.btnPrimary.ready{
+  background:var(--cyan);
+  opacity:1;
+  pointer-events:auto;
+  box-shadow:0 0 20px rgba(76,224,210,0.45);
+}
+
+.btnPrimary.ready:hover{ transform:translateY(-2px); box-shadow:0 0 28px rgba(76,224,210,0.65); }
+.btnPrimary.ready:active{ transform:translateY(0); }
+
+.btnGhost{
+  font-family:'VT323', monospace;
+  font-size:18px;
+  color:var(--ink-dim);
+  background:transparent;
+  border:2px solid var(--panel-edge);
+  border-radius:6px;
+  padding:8px 16px;
+  cursor:pointer;
+  transition:border-color 0.15s, color 0.15s;
+}
+
+.btnGhost:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+#status{
+  margin-top:14px;
+  font-size:16px;
+  min-height:20px;
+  color:var(--amber);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .noMotion, #rocketIcon, .ufoRow img{ animation:none !important; }
+}
