@@ -297,11 +297,18 @@ function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 function renderLives(){
   livesRow.innerHTML = '';
   for(let i = 0; i < 3; i++){
-    const img = document.createElement('img');
-    img.className = 'lifeIcon spriteUfoGood';
-    img.alt = '';
-    img.src = pixelSprite(SPRITES.ufo.grid, SPRITES.ufo.goodPalette, 3);
-    livesRow.appendChild(img);
+    if(spritesAvailable){
+      const img = document.createElement('img');
+      img.className = 'lifeIcon spriteUfoGood';
+      img.alt = '';
+      img.src = pixelSprite(SPRITES.ufo.grid, SPRITES.ufo.goodPalette, 3);
+      livesRow.appendChild(img);
+    } else {
+      const dot = document.createElement('div');
+      dot.className = 'lifeIcon';
+      dot.style.cssText = 'width:20px;height:20px;border-radius:50%;background:var(--cyan);display:inline-block;';
+      livesRow.appendChild(dot);
+    }
   }
 }
 function renderLivesLoss(){
@@ -397,24 +404,41 @@ function tryFire(){
 
 // ---- UFOs ----
 let ufos = [];
+let driftAmplitude = 34;
 
 function spawnUfos(q){
   ufos = [];
   ufoLabels.innerHTML = '';
-  const cols = 4;
-  const margin = 55;
-  const usable = Math.max(100, CW - margin * 2);
 
-  for(let i = 0; i < cols; i++){
-    const homeX = margin + (usable * (i + 0.5)) / cols;
+  const narrow = CW < 480;
+  const cols = narrow ? 2 : 4;
+  const rows = narrow ? 2 : 1;
+  const margin = Math.max(24, Math.min(55, CW * 0.08));
+  const usableW = Math.max(80, CW - margin * 2);
+  const colSpacing = usableW / cols;
+  const labelWidth = Math.max(40, Math.min(130, colSpacing - 8));
+  const labelFontSize = colSpacing < 90 ? 11 : (colSpacing < 130 ? 13 : 14);
+  driftAmplitude = Math.max(10, Math.min(34, colSpacing * 0.22));
+
+  const rowSpacing = 84;
+  const topY = narrow ? 50 : 66;
+
+  for(let i = 0; i < 4; i++){
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const homeX = margin + (usableW * (col + 0.5)) / cols;
+    const homeY = topY + row * rowSpacing;
     const ufo = {
-      homeX, x: homeX, y: 66, phase: Math.random() * Math.PI * 2,
+      homeX, x: homeX, homeY, y: homeY, phase: Math.random() * Math.PI * 2,
       option: q.options[i], isCorrect: i === q.correctIndex,
       subtopic: q.subtopic, alive: true, resultState: null // null | 'correct' | 'wrong'
     };
     const label = document.createElement('div');
     label.className = 'ufoLabel';
     label.textContent = q.options[i];
+    label.style.width = labelWidth + 'px';
+    label.style.marginLeft = (-labelWidth / 2) + 'px';
+    label.style.fontSize = labelFontSize + 'px';
     ufoLabels.appendChild(label);
     ufo.labelEl = label;
     ufos.push(ufo);
@@ -433,6 +457,63 @@ function drawPixelGrid(grid, palette, cx, cy, pxSize){
       ctx.fillRect(startX + x * pxSize, startY + y * pxSize, pxSize, pxSize);
     }
   }
+}
+
+// If assets/pixelart.js fails to load, or is an older version missing a
+// palette/grid this page needs, don't let a partial object cause a crash
+// mid-render. Verify every specific piece we depend on up front.
+const spritesAvailable = (
+  typeof SPRITES !== 'undefined' &&
+  typeof pixelSprite === 'function' &&
+  SPRITES.rocket && SPRITES.rocket.grid && SPRITES.rocket.palette &&
+  SPRITES.ufo && SPRITES.ufo.grid &&
+  SPRITES.ufo.goodPalette && SPRITES.ufo.badPalette && SPRITES.ufo.neutralPalette
+);
+if(!spritesAvailable){
+  console.warn('Study Invaders: assets/pixelart.js is missing or out of date — using fallback shapes. Try re-uploading the latest assets/pixelart.js.');
+}
+
+function drawShip(cx, cy){
+  if(spritesAvailable){
+    drawPixelGrid(SPRITES.rocket.grid, SPRITES.rocket.palette, cx, cy, 4);
+    return;
+  }
+  ctx.fillStyle = '#c9d6ff';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 20);
+  ctx.lineTo(cx - 14, cy + 18);
+  ctx.lineTo(cx + 14, cy + 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffd166';
+  ctx.beginPath();
+  ctx.moveTo(cx - 6, cy + 16);
+  ctx.lineTo(cx + 6, cy + 16);
+  ctx.lineTo(cx, cy + 26);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawUfo(cx, cy, resultState){
+  const colors = {
+    neutral: '#9c93c2',
+    correct: '#4ce0d2',
+    wrong: '#ff5470'
+  };
+  if(spritesAvailable){
+    let palette = SPRITES.ufo.neutralPalette;
+    if(resultState === 'correct') palette = SPRITES.ufo.goodPalette;
+    if(resultState === 'wrong') palette = SPRITES.ufo.badPalette;
+    drawPixelGrid(SPRITES.ufo.grid, palette, cx, cy, 4);
+    return;
+  }
+  ctx.fillStyle = colors[resultState || 'neutral'];
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 22, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - 6, 10, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function resolveHit(hitUfo){
@@ -483,8 +564,15 @@ function loop(now){
   if(!gameActive) return;
   const dt = Math.min(0.05, (now - lastTime) / 1000 || 0);
   lastTime = now;
-  update(dt, now);
-  render();
+  try{
+    update(dt, now);
+    render();
+  } catch(err){
+    console.error('Study Invaders render error:', err);
+    gameActive = false;
+    showFeedback('⚠️ Something went wrong drawing the game. Screenshot this and send it to your developer: ' + err.message, 'bad');
+    return; // stop the loop so we don't spam errors every frame
+  }
   requestAnimationFrame(loop);
 }
 
@@ -501,7 +589,7 @@ function update(dt, now){
   if(!resolved){
     const t = now / 1000;
     ufos.forEach(u => {
-      if(u.alive) u.x = u.homeX + Math.sin(t * 0.8 + u.phase) * 34;
+      if(u.alive) u.x = u.homeX + Math.sin(t * 0.8 + u.phase) * driftAmplitude;
     });
   }
   ufos.forEach(u => {
@@ -544,21 +632,17 @@ function render(){
 
   // UFOs
   ufos.forEach(u => {
-    let palette = SPRITES.ufo.neutralPalette;
-    if(u.resultState === 'correct') palette = SPRITES.ufo.goodPalette;
-    if(u.resultState === 'wrong') palette = SPRITES.ufo.badPalette;
-
     if(u.resultState){
       ctx.beginPath();
       ctx.fillStyle = u.resultState === 'correct' ? 'rgba(76,224,210,0.25)' : 'rgba(255,84,112,0.25)';
       ctx.arc(u.x, u.y, 30, 0, Math.PI * 2);
       ctx.fill();
     }
-    drawPixelGrid(SPRITES.ufo.grid, palette, u.x, u.y, 4);
+    drawUfo(u.x, u.y, u.resultState);
   });
 
   // Ship
-  drawPixelGrid(SPRITES.rocket.grid, SPRITES.rocket.palette, ship.x, ship.y, 4);
+  drawShip(ship.x, ship.y);
 }
 
 function endMission(completed){
