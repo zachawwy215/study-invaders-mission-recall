@@ -8,27 +8,95 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 <style>
-  .placeholderBody{
-    text-align:center;
-    padding:30px 10px;
+  #emptyView, #resultsBody{ display:none; }
+  #emptyView{ text-align:center; padding:20px 0; }
+  #emptyView p{ font-size:19px; color:var(--ink-dim); margin-bottom:22px; line-height:1.5; }
+
+  .scoreSummary{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
   }
-  .placeholderBody p{
-    font-size:19px;
-    color:var(--ink-dim);
-    line-height:1.6;
-    margin-bottom:26px;
+  .scoreBig{
+    font-family:'Press Start 2P', monospace;
+    font-size:30px;
+    color:var(--amber);
+    text-shadow:0 0 10px rgba(255,209,102,0.5);
   }
-  .placeholderBadge{
-    display:inline-block;
+  .scoreSub{ font-size:18px; color:var(--ink-dim); margin-top:6px; }
+  .statusBadge{
     font-family:'Press Start 2P', monospace;
     font-size:11px;
-    letter-spacing:2px;
-    color:var(--amber);
-    border:2px solid var(--amber);
+    letter-spacing:1.5px;
+    padding:8px 14px;
     border-radius:20px;
-    padding:6px 14px;
-    margin-bottom:20px;
+    border:2px solid var(--cyan);
+    color:var(--cyan);
   }
+  .statusBadge.failed{ border-color:var(--red); color:var(--red); }
+
+  .subtopicRow{
+    padding:12px 0;
+    border-bottom:1px solid var(--panel-edge);
+  }
+  .subtopicRow:last-child{ border-bottom:none; }
+  .subtopicHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:18px;
+    margin-bottom:8px;
+    gap:10px;
+  }
+  .subtopicName{ color:var(--ink); }
+  .subtopicRatio{ font-size:15px; color:var(--ink-dim); white-space:nowrap; }
+  .subtopicBadge{
+    font-family:'Press Start 2P', monospace;
+    font-size:9px;
+    letter-spacing:1px;
+    padding:4px 9px;
+    border-radius:10px;
+    border:2px solid var(--ink-dim);
+    color:var(--ink-dim);
+    white-space:nowrap;
+  }
+  .subtopicBadge.strong{ border-color:var(--cyan); color:var(--cyan); }
+  .subtopicBadge.weak{ border-color:var(--red); color:var(--red); }
+  .subtopicBadge.practice{ border-color:var(--amber); color:var(--amber); }
+
+  .subtopicBar{
+    height:8px;
+    border-radius:4px;
+    background:var(--panel-edge);
+    overflow:hidden;
+  }
+  .subtopicBarFill{ height:100%; border-radius:4px; }
+  .subtopicBarFill.strong{ background:var(--cyan); }
+  .subtopicBarFill.weak{ background:var(--red); }
+  .subtopicBarFill.practice{ background:var(--amber); }
+
+  .reportActions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .reportActions button{ flex:1; min-width:150px; }
+  .copyFeedback{
+    font-size:15px;
+    color:var(--cyan);
+    text-align:center;
+    min-height:20px;
+    margin-top:8px;
+  }
+
+  .bottomRow{
+    display:flex;
+    gap:12px;
+    margin-top:6px;
+  }
+  .bottomRow button{ flex:1; }
 </style>
 </head>
 <body>
@@ -45,15 +113,42 @@
     </div>
 
     <h2>MISSION RESULTS</h2>
+    <p class="fileTag" id="fileTag" style="font-size:16px;color:var(--ink-dim);margin:0 0 22px;"></p>
 
-    <div class="placeholderBody">
-      <span class="placeholderBadge">🚧 UNDER CONSTRUCTION</span>
-      <p>
-        This is where your score and subtopic breakdown (strong vs. weak areas)
-        will appear, along with a copyable results block that teachers can
-        paste into their own dashboard.
-      </p>
-      <button class="btnGhost" onclick="window.location.href='index.html'">Back to Title</button>
+    <!-- Shown if a student lands here without having played -->
+    <div id="emptyView">
+      <p>No mission results yet — play a round first and your results will show up here.</p>
+      <button class="btnPrimary ready" onclick="window.location.href='index.html'">BACK TO TITLE</button>
+    </div>
+
+    <div id="resultsBody">
+      <div class="card">
+        <div class="scoreSummary">
+          <div>
+            <div class="scoreBig" id="scoreBig">0</div>
+            <div class="scoreSub" id="scoreSub">0/0 correct</div>
+          </div>
+          <div class="statusBadge" id="statusBadge">COMPLETE</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="cardTitle">SUBTOPIC BREAKDOWN</p>
+        <div id="subtopicList"></div>
+      </div>
+
+      <div class="card">
+        <p class="cardTitle">SHARE WITH YOUR TEACHER</p>
+        <div class="reportActions">
+          <button class="btnGhost" id="copyBtn">📋 Copy Report</button>
+          <button class="btnGhost" id="downloadBtn">⬇ Download .txt</button>
+        </div>
+        <div class="copyFeedback" id="copyFeedback"></div>
+      </div>
+
+      <div class="bottomRow">
+        <button class="btnGhost" onclick="window.location.href='index.html'">Play Again</button>
+      </div>
     </div>
 
   </div>
@@ -63,7 +158,130 @@
 <script src="assets/starfield.js"></script>
 <script>
 const username = sessionStorage.getItem('si_username');
+const noteRaw = sessionStorage.getItem('si_note');
+const quizResultsRaw = sessionStorage.getItem('si_quizResults');
+
 document.getElementById('agentName').textContent = username || '—';
+
+const note = noteRaw ? JSON.parse(noteRaw) : null;
+if(note) document.getElementById('fileTag').textContent = `Source: ${note.name}`;
+
+const emptyView = document.getElementById('emptyView');
+const resultsBody = document.getElementById('resultsBody');
+
+if(!quizResultsRaw){
+  emptyView.style.display = 'block';
+} else {
+  resultsBody.style.display = 'block';
+  const quizResults = JSON.parse(quizResultsRaw);
+
+  // ---------- Score summary ----------
+  document.getElementById('scoreBig').textContent = quizResults.score;
+  document.getElementById('scoreSub').textContent =
+    `${quizResults.correctCount}/${quizResults.total} correct`;
+  const statusBadge = document.getElementById('statusBadge');
+  statusBadge.textContent = quizResults.completed ? 'COMPLETE' : 'FAILED';
+  if(!quizResults.completed) statusBadge.classList.add('failed');
+
+  // ---------- Subtopic aggregation ----------
+  function aggregateSubtopics(log){
+    const map = {};
+    log.forEach(entry => {
+      if(!map[entry.subtopic]) map[entry.subtopic] = { correct: 0, total: 0 };
+      map[entry.subtopic].total++;
+      if(entry.correct) map[entry.subtopic].correct++;
+    });
+    return Object.entries(map).map(([subtopic, stats]) => {
+      const ratio = stats.correct / stats.total;
+      let level = 'practice';
+      if(ratio === 1) level = 'strong';
+      else if(ratio === 0) level = 'weak';
+      return { subtopic, ...stats, ratio, level };
+    }).sort((a, b) => a.ratio - b.ratio); // weakest areas shown first
+  }
+
+  const subtopicStats = aggregateSubtopics(quizResults.log || []);
+
+  const subtopicList = document.getElementById('subtopicList');
+  const LEVEL_LABEL = { strong: '✔ STRONG', weak: '⚠ WEAK', practice: '~ PRACTICE' };
+
+  subtopicStats.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'subtopicRow';
+
+    const header = document.createElement('div');
+    header.className = 'subtopicHeader';
+    header.innerHTML = `
+      <span class="subtopicName">${s.subtopic}</span>
+      <span class="subtopicBadge ${s.level}">${LEVEL_LABEL[s.level]}</span>
+    `;
+
+    const ratioLine = document.createElement('div');
+    ratioLine.className = 'subtopicRatio';
+    ratioLine.textContent = `${s.correct}/${s.total} correct`;
+    ratioLine.style.marginBottom = '6px';
+
+    const bar = document.createElement('div');
+    bar.className = 'subtopicBar';
+    const fill = document.createElement('div');
+    fill.className = `subtopicBarFill ${s.level}`;
+    fill.style.width = `${Math.round(s.ratio * 100)}%`;
+    bar.appendChild(fill);
+
+    row.appendChild(header);
+    row.appendChild(ratioLine);
+    row.appendChild(bar);
+    subtopicList.appendChild(row);
+  });
+
+  if(subtopicStats.length === 0){
+    subtopicList.innerHTML = '<p style="color:var(--ink-dim);font-size:16px;">No subtopic data available for this round.</p>';
+  }
+
+  // ---------- Plain-text report ----------
+  function buildReportText(){
+    const lines = [];
+    lines.push('STUDY INVADERS \u2014 MISSION REPORT');
+    lines.push(`Agent: ${username || 'Unknown'}`);
+    if(note) lines.push(`Source notes: ${note.name}`);
+    lines.push(`Date: ${new Date().toLocaleString()}`);
+    lines.push(`Score: ${quizResults.score} \u2014 ${quizResults.correctCount}/${quizResults.total} correct`);
+    lines.push(`Mission status: ${quizResults.completed ? 'COMPLETE' : 'FAILED'}`);
+    lines.push('');
+    lines.push('SUBTOPIC BREAKDOWN');
+    if(subtopicStats.length === 0){
+      lines.push('(no subtopic data)');
+    } else {
+      subtopicStats.forEach(s => {
+        lines.push(`${LEVEL_LABEL[s.level]} \u2014 ${s.subtopic} (${s.correct}/${s.total} correct)`);
+      });
+    }
+    return lines.join('\n');
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const feedback = document.getElementById('copyFeedback');
+    try{
+      await navigator.clipboard.writeText(buildReportText());
+      feedback.textContent = 'Copied! Paste it into an email or message to your teacher.';
+    } catch(err){
+      feedback.textContent = "Couldn't copy automatically — try the download button instead.";
+    }
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const blob = new Blob([buildReportText()], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeName = (username || 'student').replace(/[^a-z0-9]/gi, '_');
+    a.href = url;
+    a.download = `study-invaders-report-${safeName}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+}
 </script>
 
 </body>
