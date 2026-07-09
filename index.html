@@ -293,6 +293,7 @@ playBtn.addEventListener('click', async () => {
     sessionStorage.setItem('si_username', usernameInput.value.trim());
     sessionStorage.setItem('si_note', JSON.stringify(payload));
     sessionStorage.removeItem('si_learnData');
+    sessionStorage.removeItem('si_quizResults');
     runBriefing();
   } catch(err){
     console.error(err);
