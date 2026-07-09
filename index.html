@@ -118,6 +118,7 @@
 
 <script src="assets/pixelart.js"></script>
 <script src="assets/starfield.js"></script>
+<script src="assets/ai.js"></script>
 <script>
 const usernameInput = document.getElementById('username');
 const uploadInput = document.getElementById('noteUpload');
@@ -225,53 +226,8 @@ Respond with ONLY raw JSON (no markdown code fences, no extra commentary before 
 }
 Include 5 to 10 items in keywords. Keep language encouraging and appropriate for a student.`;
 
-// Puter.js can return the AI response in a couple of different shapes
-// depending on which underlying model handled the request — this pulls
-// the plain text out of whichever shape shows up.
-function extractResponseText(response){
-  if(typeof response === 'string') return response;
-  if(response?.message?.content){
-    const content = response.message.content;
-    if(typeof content === 'string') return content;
-    if(Array.isArray(content) && content[0]?.text) return content[0].text;
-  }
-  if(response?.text) return response.text;
-  return String(response);
-}
-
-function parseJsonResponse(raw){
-  const cleaned = raw
-    .trim()
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/, '')
-    .replace(/```$/, '')
-    .trim();
-  return JSON.parse(cleaned);
-}
-
-async function uploadNoteAndGetUrl(note){
-  // Convert the stored base64 content back into a real Blob to upload.
-  const byteChars = atob(note.content);
-  const byteNumbers = new Array(byteChars.length);
-  for(let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: note.mimeType });
-
-  const uploaded = await puter.fs.write(note.name, blob);
-  return await puter.fs.getReadURL(uploaded.path);
-}
-
 async function callAI(note){
-  let response;
-  if(note.isText){
-    const fullPrompt = PROMPT + "\n\nNOTES CONTENT:\n" + note.content;
-    response = await puter.ai.chat(fullPrompt, { model: 'google/gemini-3.5-flash' });
-  } else {
-    const fileUrl = await uploadNoteAndGetUrl(note);
-    response = await puter.ai.chat(PROMPT, fileUrl, { model: 'google/gemini-3.5-flash' });
-  }
-  const rawText = extractResponseText(response);
-  return parseJsonResponse(rawText);
+  return await askAI(PROMPT, note);
 }
 
 async function runBriefing(){
