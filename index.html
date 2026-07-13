@@ -38,9 +38,6 @@
   #errorSection p{ font-size:18px; color:var(--ink-dim); margin-bottom:20px; text-align:center; }
 
   .puterNotice{
-    display:flex;
-    align-items:flex-start;
-    gap:8px;
     font-size:15px;
     line-height:1.4;
     color:var(--ink-dim);
@@ -50,6 +47,16 @@
     padding:10px 12px;
     margin-bottom:18px;
     text-align:left;
+  }
+  .puterNoticeRow{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .puterNoticeRow + .puterNoticeRow{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--panel-edge);
   }
   .puterNotice .lockIcon{ font-size:16px; line-height:1.4; }
 </style>
@@ -92,8 +99,14 @@
       </fieldset>
 
       <div class="puterNotice">
-        <span class="lockIcon">🔒</span>
-        <span>One extra step: when you hit Play, a window will pop up asking you to sign in with a free Puter account. That's what powers the AI part — it only takes a few seconds, and you only do it once on this device. If Puter ever says your account is low on balance, just sign out and sign back in with a different email to get a fresh account.</span>
+        <div class="puterNoticeRow">
+          <span class="lockIcon">🔒</span>
+          <span>One extra step: when you hit Play, a window will pop up asking you to sign in with a free Puter account. That's what powers the AI part — it only takes a few seconds, and you only do it once on this device.</span>
+        </div>
+        <div class="puterNoticeRow">
+          <span class="lockIcon">🔒</span>
+          <span>If Puter ever says your account is low on balance, just sign out and sign back in with a different email to get a fresh account.</span>
+        </div>
       </div>
 
       <button id="playBtn" class="btnPrimary">PLAY</button>
