@@ -84,41 +84,42 @@
   <div class="cabinet wide">
 
     <div class="topBar">
-      <button class="btnGhost" onclick="window.location.href='index.html'">&larr; Back</button>
-      <span class="agentTag">Agent: <span id="agentName">—</span></span>
+      <button class="btnGhost" onclick="window.location.href='index.html'" data-i18n="backBtn">&larr; Back</button>
+      <span class="agentTag"><span data-i18n="agentLabel">Agent:</span> <span id="agentName">—</span></span>
     </div>
 
-    <h2>MISSION BRIEFING</h2>
+    <h2 data-i18n="missionBriefing">MISSION BRIEFING</h2>
     <p class="fileTag" id="fileTag"></p>
 
     <div id="resultView">
       <div class="card">
-        <p class="cardTitle">SUMMARY</p>
+        <p class="cardTitle" data-i18n="summaryTitle">SUMMARY</p>
         <p class="summaryText" id="summaryText"></p>
       </div>
 
       <div class="card">
-        <p class="cardTitle">HIGHLIGHTS</p>
+        <p class="cardTitle" data-i18n="highlightsTitle">HIGHLIGHTS</p>
         <ul class="highlightList" id="highlightList"></ul>
       </div>
 
       <div class="card">
-        <p class="cardTitle">KEYWORDS</p>
+        <p class="cardTitle" data-i18n="keywordsTitle">KEYWORDS</p>
         <div class="keywordWrap" id="keywordWrap"></div>
       </div>
 
       <div class="bottomRow">
-        <button class="btnPrimary ready" id="launchBtn">LAUNCH MISSION &gt;</button>
+        <button class="btnPrimary ready" id="launchBtn" data-i18n="launchMissionBtn">LAUNCH MISSION &gt;</button>
       </div>
     </div>
 
-    <p class="creditFooter">Made by Computer System Operation &middot; Sarawak Skills Sri Aman</p>
+    <p class="creditFooter" data-i18n="creditFooter">Made by Computer System Operation &middot; Sarawak Skills Sri Aman</p>
 
   </div>
 </div>
 
 <script src="assets/pixelart.js"></script>
 <script src="assets/starfield.js"></script>
+<script src="assets/i18n.js"></script>
 <script>
 // This page only ever displays data that index.html already fetched from
 // Gemini. If that data isn't present, there's nothing to show — send the
@@ -135,7 +136,7 @@ const note = noteRaw ? JSON.parse(noteRaw) : null;
 const learnData = learnDataRaw ? JSON.parse(learnDataRaw) : null;
 
 document.getElementById('agentName').textContent = username || '—';
-if(note) document.getElementById('fileTag').textContent = `Source: ${note.name}`;
+if(note) document.getElementById('fileTag').textContent = t('sourceLabel') + note.name;
 
 if(learnData){
   document.getElementById('summaryText').textContent = learnData.summary;
@@ -174,6 +175,8 @@ if(learnData){
 document.getElementById('launchBtn').addEventListener('click', () => {
   window.location.href = 'play.html';
 });
+
+initI18n();
 </script>
 
 </body>
