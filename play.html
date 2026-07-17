@@ -169,30 +169,30 @@
   <div class="cabinet wide">
 
     <div class="topBar">
-      <button class="btnGhost" id="backBtn">&larr; Menu</button>
-      <span class="agentTag">Agent: <span id="agentName">—</span></span>
+      <button class="btnGhost" id="backBtn" data-i18n="menuBtn">&larr; Menu</button>
+      <span class="agentTag"><span data-i18n="agentLabel">Agent:</span> <span id="agentName">—</span></span>
     </div>
-    <h2 style="text-align:center;">MISSION: DEFEND</h2>
+    <h2 style="text-align:center;" data-i18n="missionDefend">MISSION: DEFEND</h2>
 
     <!-- Difficulty select state -->
     <div id="difficultyView">
-      <p style="text-align:center; color:var(--ink-dim); font-size:17px; margin:0 0 18px;">Choose your mission difficulty</p>
+      <p style="text-align:center; color:var(--ink-dim); font-size:17px; margin:0 0 18px;" data-i18n="chooseDifficulty">Choose your mission difficulty</p>
       <div class="difficultyGrid">
         <div class="difficultyCard easy" data-difficulty="easy" data-count="10">
-          <div class="difficultyName">EASY</div>
-          <div class="difficultyDesc">10 questions</div>
+          <div class="difficultyName" data-i18n="easyName">EASY</div>
+          <div class="difficultyDesc" data-i18n="easyDesc">10 questions</div>
         </div>
         <div class="difficultyCard normal" data-difficulty="normal" data-count="15">
-          <div class="difficultyName">NORMAL</div>
-          <div class="difficultyDesc">15 questions</div>
+          <div class="difficultyName" data-i18n="normalName">NORMAL</div>
+          <div class="difficultyDesc" data-i18n="normalDesc">15 questions</div>
         </div>
         <div class="difficultyCard hard" data-difficulty="hard" data-count="20">
-          <div class="difficultyName">HARD</div>
-          <div class="difficultyDesc">20 questions</div>
+          <div class="difficultyName" data-i18n="hardName">HARD</div>
+          <div class="difficultyDesc" data-i18n="hardDesc">20 questions</div>
         </div>
         <div class="difficultyCard endless" data-difficulty="endless" data-count="30">
-          <div class="difficultyName">ENDLESS</div>
-          <div class="difficultyDesc">Survive as long as you can</div>
+          <div class="difficultyName" data-i18n="endlessName">ENDLESS</div>
+          <div class="difficultyDesc" data-i18n="endlessDesc">Survive as long as you can</div>
         </div>
       </div>
     </div>
@@ -210,7 +210,7 @@
     <div id="errorView">
       <p id="errorMessage">Couldn't prep the mission.</p>
       <div style="text-align:center;">
-        <button class="btnGhost" id="retryBtn">Try again</button>
+        <button class="btnGhost" id="retryBtn" data-i18n="retryBtn">Try again</button>
       </div>
     </div>
 
@@ -218,11 +218,11 @@
     <div id="gameView">
       <div class="gameHud">
         <div class="livesRow" id="livesRow"></div>
-        <div class="hudScore">Score: <span id="scoreVal">0</span></div>
+        <div class="hudScore"><span data-i18n="scoreLabel">Score: </span><span id="scoreVal">0</span></div>
       </div>
       <div class="questionCounter" id="questionCounter">Question 1 / 8</div>
       <div class="questionText" id="questionText"></div>
-      <div class="controlHint">Move: A/D or mouse &middot; Shoot: Space or click</div>
+      <div class="controlHint" data-i18n="controlHint">Move: A/D or mouse &middot; Shoot: Space or click</div>
 
       <div class="arena" id="arena">
         <canvas id="gameCanvas"></canvas>
@@ -236,10 +236,10 @@
     <div id="gameOverView">
       <h2 id="gameOverTitle">MISSION COMPLETE</h2>
       <p id="gameOverScore">Score: 0</p>
-      <button class="btnPrimary ready" id="toResultsBtn">SEE RESULTS &gt;</button>
+      <button class="btnPrimary ready" id="toResultsBtn" data-i18n="seeResultsBtn">SEE RESULTS &gt;</button>
     </div>
 
-    <p class="creditFooter">Made by Computer System Operation &middot; Sarawak Skills Sri Aman</p>
+    <p class="creditFooter" data-i18n="creditFooter">Made by Computer System Operation &middot; Sarawak Skills Sri Aman</p>
 
   </div>
 </div>
@@ -247,6 +247,7 @@
 <script src="assets/pixelart.js"></script>
 <script src="assets/starfield.js"></script>
 <script src="assets/ai.js"></script>
+<script src="assets/i18n.js"></script>
 <script>
 // ---------- Read handoff data ----------
 const username = sessionStorage.getItem('si_username');
@@ -280,25 +281,24 @@ const ufoLabels = document.getElementById('ufoLabels');
 const feedbackBanner = document.getElementById('feedbackBanner');
 
 // ---------- Loading flourishes ----------
-const statusMessages = [
-  'Loading ammo crates...',
-  'Painting decoy UFOs...',
-  'Calibrating the targeting laser...',
-  'Recruiting good UFOs for defense...',
-  'Sharpening quiz questions...',
-  'Testing the ejector seat (kidding)...',
-  'Fueling up the rocket...',
-  'Scrambling the alien decoys...'
-];
-for(let i = statusMessages.length - 1; i > 0; i--){
-  const j = Math.floor(Math.random() * (i + 1));
-  [statusMessages[i], statusMessages[j]] = [statusMessages[j], statusMessages[i]];
+function getStatusMessages(){
+  const messages = [
+    t('playLoading1'), t('playLoading2'), t('playLoading3'), t('playLoading4'),
+    t('playLoading5'), t('playLoading6'), t('playLoading7'), t('playLoading8')
+  ];
+  for(let i = messages.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [messages[i], messages[j]] = [messages[j], messages[i]];
+  }
+  return messages;
 }
+let statusMessages = [];
 let statusIdx = 0;
 let statusInterval = null;
 let blipInterval = null;
 
 function startLoadingFlourishes(){
+  statusMessages = getStatusMessages();
   loadingStatus.textContent = statusMessages[0];
   statusIdx = 0;
   statusInterval = setInterval(() => {
@@ -327,6 +327,7 @@ function buildQuizPrompt(){
   const subtopics = learnData.keywords.map(k => k.term);
   return `You are creating a multiple-choice quiz to test a student on their teacher's notes.
 Based ONLY on the attached notes (do not invent facts not supported by them), create exactly ${QUESTION_COUNT} multiple-choice questions.
+Write the question text and all answer options in ${t('aiLanguageName')}.
 
 Each question must use exactly one subtopic tag chosen from this fixed list (use the exact spelling given): ${JSON.stringify(subtopics)}
 
@@ -370,8 +371,12 @@ let resultsLog = [];
 let resolved = false;   // true while a hit is being resolved (feedback showing, no new hits/fire)
 let gameActive = false; // true only while the canvas loop should run
 
-const CORRECT_LINES = ["Yay! Thank you, Agent!", "Nailed it!", "The good UFOs cheer!", "Correct — Earth is safe a little longer!"];
-const WRONG_LINES = ["Ha! Wrong! Time to invade Earth!", "Oof, that one got away.", "The bad UFO cackles...", "Not quite, Agent."];
+function getCorrectLines(){
+  return [t('correctLine1'), t('correctLine2'), t('correctLine3'), t('correctLine4')];
+}
+function getWrongLines(){
+  return [t('wrongLine1'), t('wrongLine2'), t('wrongLine3'), t('wrongLine4')];
+}
 
 function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -689,12 +694,12 @@ function resolveHit(hitUfo){
   if(correct){
     score += 10;
     scoreVal.textContent = score;
-    showFeedback(pickRandom(CORRECT_LINES), 'good');
+    showFeedback(pickRandom(getCorrectLines()), 'good');
     resultsLog.push({ subtopic: q.subtopic, correct: true });
   } else {
     lives--;
     renderLivesLoss();
-    showFeedback(`${pickRandom(WRONG_LINES)} The right answer was: "${q.options[q.correctIndex]}"`, 'bad');
+    showFeedback(`${pickRandom(getWrongLines())} ${t('rightAnswerWas')}"${q.options[q.correctIndex]}"`, 'bad');
     resultsLog.push({ subtopic: q.subtopic, correct: false });
   }
 
@@ -723,7 +728,7 @@ function beginExitSweep(onComplete){
 
 function startNextQuestion(){
   const q = quiz[currentIndex];
-  questionCounter.textContent = `Question ${currentIndex + 1} / ${quiz.length}`;
+  questionCounter.textContent = t('questionCounterTemplate', { n: currentIndex + 1, total: quiz.length });
   questionText.textContent = q.question;
   projectiles = [];
   resolved = false;
@@ -870,14 +875,14 @@ function endMission(completed){
     completed
   }));
   gameOverView.style.display = 'block';
-  document.getElementById('gameOverTitle').textContent = completed ? 'MISSION COMPLETE' : 'MISSION FAILED';
+  document.getElementById('gameOverTitle').textContent = completed ? t('missionComplete') : t('missionFailed');
   document.getElementById('gameOverScore').textContent =
-    `Score: ${score} — ${correctCount}/${quiz.length} correct`;
+    t('scoreTemplate', { score, correct: correctCount, total: quiz.length });
 }
 
 document.getElementById('backBtn').addEventListener('click', () => {
   if(gameActive){
-    if(confirm('Leave this mission? Your progress on this playthrough will be lost.')){
+    if(confirm(t('leaveMissionConfirm'))){
       window.location.href = 'index.html';
     }
   } else {
@@ -917,7 +922,7 @@ async function startMission(){
     resetShip();
 
     const q = quiz[currentIndex];
-    questionCounter.textContent = `Question 1 / ${quiz.length}`;
+    questionCounter.textContent = t('questionCounterTemplate', { n: 1, total: quiz.length });
     questionText.textContent = q.question;
     spawnUfos(q);
 
@@ -930,7 +935,7 @@ async function startMission(){
     loadingView.style.display = 'none';
     errorView.style.display = 'block';
     document.getElementById('errorMessage').textContent =
-      "Mission prep failed: " + err.message + " — If this mentions a low balance, try signing out of Puter and signing back in with a different account.";
+      t('missionPrepFailed') + err.message + t('lowBalanceHint');
   }
 }
 
@@ -945,9 +950,11 @@ document.querySelectorAll('.difficultyCard').forEach(card => {
   });
 });
 
-if(note && learnData){
-  difficultyView.style.display = 'block';
-}
+initI18n(() => {
+  if(note && learnData){
+    difficultyView.style.display = 'block';
+  }
+}, () => !gameActive || confirm(t('switchLangConfirm')));
 </script>
 
 </body>
