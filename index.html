@@ -73,8 +73,8 @@
       <img id="rocketIcon" class="spriteRocket" alt="">
       <h1>STUDY<br>INVADERS</h1>
     </div>
-    <p class="missionTag">MISSION: RECALL</p>
-    <p class="tagline">Defend your grade. Shoot the right answer.</p>
+    <p class="missionTag" data-i18n="missionRecall">MISSION: RECALL</p>
+    <p class="tagline" data-i18n="tagline">Defend your grade. Shoot the right answer.</p>
 
     <div class="ufoRow">
       <img class="spriteUfoGood" alt="">
@@ -85,31 +85,31 @@
     <!-- Upload form -->
     <div id="formSection">
       <fieldset>
-        <label for="username">Callsign (your name)</label>
-        <input type="text" id="username" placeholder="e.g. Alex Tan" autocomplete="off">
+        <label for="username" data-i18n="callsignLabel">Callsign (your name)</label>
+        <input type="text" id="username" data-i18n-placeholder="callsignPlaceholder" placeholder="e.g. Alex Tan" autocomplete="off">
       </fieldset>
 
       <fieldset>
-        <label>Mission notes</label>
+        <label data-i18n="missionNotesLabel">Mission notes</label>
         <div class="uploadZone" id="uploadZone">
           <input type="file" id="noteUpload" accept=".pdf,.txt,.png,.jpg,.jpeg">
-          <div class="zoneLabel" id="zoneLabel">Tap to upload your teacher's notes</div>
-          <div class="zoneHint">PDF, image, or text file</div>
+          <div class="zoneLabel" id="zoneLabel" data-i18n="uploadPrompt">Tap to upload your teacher's notes</div>
+          <div class="zoneHint" data-i18n="uploadHint">PDF, image, or text file</div>
         </div>
       </fieldset>
 
       <div class="puterNotice">
         <div class="puterNoticeRow">
           <span class="lockIcon">🔒</span>
-          <span>One extra step: when you hit Play, a window will pop up asking you to sign in with a free Puter account. That's what powers the AI part — it only takes a few seconds, and you only do it once on this device.</span>
+          <span data-i18n="puterNotice1">One extra step: when you hit Play, a window will pop up asking you to sign in with a free Puter account. That's what powers the AI part — it only takes a few seconds, and you only do it once on this device.</span>
         </div>
         <div class="puterNoticeRow">
           <span class="lockIcon">🔒</span>
-          <span>If Puter ever says your account is low on balance, just sign out and sign back in with a different email to get a fresh account.</span>
+          <span data-i18n="puterNotice2">If Puter ever says your account is low on balance, just sign out and sign back in with a different email to get a fresh account.</span>
         </div>
       </div>
 
-      <button id="playBtn" class="btnPrimary">PLAY</button>
+      <button id="playBtn" class="btnPrimary" data-i18n="playBtn">PLAY</button>
       <div id="status"></div>
     </div>
 
@@ -125,10 +125,10 @@
     <!-- Error state -->
     <div id="errorSection">
       <p id="errorMessage">Transmission failed.</p>
-      <button class="btnGhost" id="retryBtn">Try again</button>
+      <button class="btnGhost" id="retryBtn" data-i18n="retryBtn">Try again</button>
     </div>
 
-    <p class="creditFooter">Made by Computer System Operation &middot; Sarawak Skills Sri Aman</p>
+    <p class="creditFooter" data-i18n="creditFooter">Made by Computer System Operation &middot; Sarawak Skills Sri Aman</p>
 
   </div>
 </div>
@@ -136,6 +136,7 @@
 <script src="assets/pixelart.js"></script>
 <script src="assets/starfield.js"></script>
 <script src="assets/ai.js"></script>
+<script src="assets/i18n.js"></script>
 <script>
 const usernameInput = document.getElementById('username');
 const uploadInput = document.getElementById('noteUpload');
@@ -166,7 +167,7 @@ uploadInput.addEventListener('change', () => {
     uploadZone.classList.add('hasFile');
   } else {
     uploadedFile = null;
-    zoneLabel.textContent = "Tap to upload your teacher's notes";
+    zoneLabel.textContent = t('uploadPrompt');
     uploadZone.classList.remove('hasFile');
   }
   checkReady();
@@ -191,25 +192,24 @@ async function fileToPayload(file){
 }
 
 // ---------- Loading flourishes ----------
-const statusMessages = [
-  'Getting the spaceship ready...',
-  'Tiny crew is loading the ammo...',
-  'Waking up the radar operator...',
-  'Briefing the alien scouts...',
-  'Polishing the laser cannons...',
-  "Decoding your teacher's secrets...",
-  'Teaching the UFOs their lines...',
-  'Double-checking the star map...'
-];
-for(let i = statusMessages.length - 1; i > 0; i--){
-  const j = Math.floor(Math.random() * (i + 1));
-  [statusMessages[i], statusMessages[j]] = [statusMessages[j], statusMessages[i]];
+function getStatusMessages(){
+  const messages = [
+    t('loading1'), t('loading2'), t('loading3'), t('loading4'),
+    t('loading5'), t('loading6'), t('loading7'), t('loading8')
+  ];
+  for(let i = messages.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [messages[i], messages[j]] = [messages[j], messages[i]];
+  }
+  return messages;
 }
+let statusMessages = [];
 let statusIdx = 0;
 let statusInterval = null;
 let blipInterval = null;
 
 function startLoadingFlourishes(){
+  statusMessages = getStatusMessages();
   loadingStatus.textContent = statusMessages[0];
   statusIdx = 0;
   statusInterval = setInterval(() => {
@@ -232,8 +232,10 @@ function stopLoadingFlourishes(){
 }
 
 // ---------- AI call (via Puter.js — no API key needed) ----------
-const PROMPT = `You are a study assistant helping a student quickly review their teacher's notes before a quiz.
+function buildPrompt(){
+  return `You are a study assistant helping a student quickly review their teacher's notes before a quiz.
 Based ONLY on the attached notes (do not invent information that isn't supported by them), produce a study briefing.
+Write your entire response in ${t('aiLanguageName')}.
 
 Respond with ONLY raw JSON (no markdown code fences, no extra commentary before or after) matching exactly this shape:
 {
@@ -242,9 +244,10 @@ Respond with ONLY raw JSON (no markdown code fences, no extra commentary before 
   "keywords": [{"term": "a key term from the notes", "definition": "a one-sentence, simple definition of that term"}]
 }
 Include 5 to 10 items in keywords. Keep language encouraging and appropriate for a student.`;
+}
 
 async function callAI(note){
-  return await askAI(PROMPT, note);
+  return await askAI(buildPrompt(), note);
 }
 
 async function runBriefing(){
@@ -268,7 +271,7 @@ async function runBriefing(){
     loadingSection.style.display = 'none';
     errorSection.style.display = 'block';
     document.getElementById('errorMessage').textContent =
-      "Transmission failed: " + err.message + " — If this mentions a low balance, try signing out of Puter and signing back in with a different account.";
+      t('transmissionFailed') + err.message + t('lowBalanceHint');
   }
 }
 
@@ -279,11 +282,11 @@ document.getElementById('retryBtn').addEventListener('click', () => {
 
 playBtn.addEventListener('click', async () => {
   const missing = [];
-  if(usernameInput.value.trim().length === 0) missing.push('your callsign');
-  if(uploadedFile === null) missing.push('your notes');
+  if(usernameInput.value.trim().length === 0) missing.push(t('missingCallsign'));
+  if(uploadedFile === null) missing.push(t('missingNotes'));
 
   if(missing.length > 0){
-    status.textContent = `Enter ${missing.join(' and ')} before launching.`;
+    status.textContent = t('missingTemplate', { items: missing.join(currentLang() === 'ms' ? ' dan ' : ' and ') });
     status.style.color = 'var(--red)';
     return;
   }
@@ -293,18 +296,20 @@ playBtn.addEventListener('click', async () => {
   try{
     if(!puter.auth.isSignedIn()){
       status.style.color = 'var(--amber)';
-      status.textContent = 'Waiting for Puter sign-in...';
+      status.textContent = currentLang() === 'ms' ? 'Menunggu log masuk Puter...' : 'Waiting for Puter sign-in...';
       await puter.auth.signIn();
     }
   } catch(err){
     console.error(err);
     status.style.color = 'var(--red)';
-    status.textContent = "Sign-in didn't go through — try clicking Play again.";
+    status.textContent = currentLang() === 'ms'
+      ? 'Log masuk tidak berjaya — cuba tekan Main sekali lagi.'
+      : "Sign-in didn't go through — try clicking Play again.";
     return;
   }
 
   status.style.color = 'var(--amber)';
-  status.textContent = 'Uploading transmission...';
+  status.textContent = t('uploadingStatus');
   try{
     const payload = await fileToPayload(uploadedFile);
     sessionStorage.setItem('si_username', usernameInput.value.trim());
@@ -315,9 +320,11 @@ playBtn.addEventListener('click', async () => {
   } catch(err){
     console.error(err);
     status.style.color = 'var(--red)';
-    status.textContent = "Couldn't read that file — try a different one.";
+    status.textContent = t('fileReadError');
   }
 });
+
+initI18n();
 </script>
 
 </body>
