@@ -282,7 +282,7 @@ function injectLanguageToggle(beforeSwitch){
   if(btn){
     // Already exists (e.g. created before the popup was answered) — just
     // refresh its label/title to match whatever language is now active.
-    btn.textContent = currentLang() === 'ms' ? 'EN' : 'BM';
+    btn.textContent = currentLang() === 'ms' ? '🌐 EN' : '🌐 BM';
     btn.title = currentLang() === 'ms' ? 'Switch to English' : 'Tukar ke Bahasa Malaysia';
     return;
   }
@@ -290,7 +290,7 @@ function injectLanguageToggle(beforeSwitch){
   btn.id = 'langToggleBtn';
   btn.className = 'langToggleBtn';
   btn.type = 'button';
-  btn.textContent = currentLang() === 'ms' ? 'EN' : 'BM';
+  btn.textContent = currentLang() === 'ms' ? '🌐 EN' : '🌐 BM';
   btn.title = currentLang() === 'ms' ? 'Switch to English' : 'Tukar ke Bahasa Malaysia';
   btn.addEventListener('click', () => {
     if(typeof beforeSwitch === 'function' && !beforeSwitch()) return;
